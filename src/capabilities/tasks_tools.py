@@ -36,7 +36,8 @@ def create_task(client, title, body=None, body_type="text", categories=None, due
         return {"status": "error", "message": "No default todo list found"}
 
     # Timezone for DateTimeTimeZone objects
-    tz = "UTC" 
+    # Timezone for DateTimeTimeZone objects
+    tz = "China Standard Time"  
     
     payload = {"title": title}
     
@@ -79,7 +80,8 @@ def update_task(client, task_id, **kwargs):
     if not list_id:
         return {"status": "error", "message": "No default todo list found"}
 
-    tz = "UTC"
+    # Timezone for DateTimeTimeZone objects
+    tz = "China Standard Time" 
     payload = {}
     
     if 'title' in kwargs:

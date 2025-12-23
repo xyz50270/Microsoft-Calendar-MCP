@@ -32,8 +32,8 @@ def create_event(client, subject, start, end, body=None, body_type="HTML", locat
     """
     payload = {
         "subject": subject,
-        "start": {"dateTime": start, "timeZone": "UTC"},
-        "end": {"dateTime": end, "timeZone": "UTC"},
+        "start": {"dateTime": start, "timeZone": "China Standard Time"},
+        "end": {"dateTime": end, "timeZone": "China Standard Time"},
         "isAllDay": is_all_day,
         "isOnlineMeeting": is_online_meeting,
         "importance": importance
@@ -72,9 +72,9 @@ def update_event(client, event_id, **kwargs):
             payload[api_field] = kwargs[arg]
             
     if 'start' in kwargs:
-        payload["start"] = {"dateTime": kwargs['start'], "timeZone": "UTC"}
+        payload["start"] = {"dateTime": kwargs['start'], "timeZone": "China Standard Time"}
     if 'end' in kwargs:
-        payload["end"] = {"dateTime": kwargs['end'], "timeZone": "UTC"}
+        payload["end"] = {"dateTime": kwargs['end'], "timeZone": "China Standard Time"}
     if 'location' in kwargs:
         payload["location"] = {"displayName": kwargs['location']}
     if 'body' in kwargs:
@@ -105,8 +105,8 @@ def get_user_schedules(client, schedules, start, end, availability_view_interval
     """
     payload = {
         "schedules": schedules,
-        "startTime": {"dateTime": start, "timeZone": "UTC"},
-        "endTime": {"dateTime": end, "timeZone": "UTC"},
+        "startTime": {"dateTime": start, "timeZone": "China Standard Time"},
+        "endTime": {"dateTime": end, "timeZone": "China Standard Time"},
         "availabilityViewInterval": availability_view_interval
     }
     
