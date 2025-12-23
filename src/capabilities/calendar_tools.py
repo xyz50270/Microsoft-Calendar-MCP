@@ -19,23 +19,20 @@ def list_events(client, start_date=None, end_date=None):
             "start": event.get("start", {}).get("dateTime"),
             "end": event.get("end", {}).get("dateTime"),
             "location": event.get("location", {}).get("displayName"),
-            "body": event.get("bodyPreview"),
-            "attendees": [a.get("emailAddress", {}).get("address") for a in event.get("attendees", [])]
+            "body": event.get("bodyPreview")
         }
         for event in data.get("value", [])
     ]
 
-def create_event(client, subject, start, end, body=None, body_type="HTML", location=None, attendees=None, is_all_day=False, is_online_meeting=False, importance="normal", categories=None, is_reminder_on=True, reminder_minutes=15):
+def create_event(client, subject, start, end, body=None, body_type="HTML", location=None, is_all_day=False, importance="normal", categories=None, is_reminder_on=True, reminder_minutes=15):
     """
-    创建具有所有支持属性的新日程。
-    :param attendees: 邮箱地址列表。
+    创建具有支持属性的新日程。
     """
     payload = {
         "subject": subject,
         "start": {"dateTime": start, "timeZone": "China Standard Time"},
         "end": {"dateTime": end, "timeZone": "China Standard Time"},
         "isAllDay": is_all_day,
-        "isOnlineMeeting": is_online_meeting,
         "importance": importance,
         "isReminderOn": is_reminder_on,
         "reminderMinutesBeforeStart": reminder_minutes
@@ -47,10 +44,6 @@ def create_event(client, subject, start, end, body=None, body_type="HTML", locat
         payload["location"] = {"displayName": location}
     if categories:
         payload["categories"] = categories
-    if attendees:
-        payload["attendees"] = [
-            {"emailAddress": {"address": addr}, "type": "required"} for addr in attendees
-        ]
         
     response = client.request("POST", "/me/events", json=payload)
     data = response.json()
@@ -64,7 +57,6 @@ def update_event(client, event_id, **kwargs):
     field_map = {
         'subject': 'subject',
         'is_all_day': 'isAllDay',
-        'is_online_meeting': 'isOnlineMeeting',
         'importance': 'importance',
         'categories': 'categories',
         'is_reminder_on': 'isReminderOn',
@@ -83,10 +75,6 @@ def update_event(client, event_id, **kwargs):
         payload["location"] = {"displayName": kwargs['location']}
     if 'body' in kwargs:
         payload["body"] = {"contentType": kwargs.get('body_type', 'HTML'), "content": kwargs['body']}
-    if 'attendees' in kwargs:
-        payload["attendees"] = [
-            {"emailAddress": {"address": addr}, "type": "required"} for addr in kwargs['attendees']
-        ]
         
     if not payload:
         return {"status": "error", "message": "未提供需要更新的字段"}

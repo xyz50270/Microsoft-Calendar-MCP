@@ -18,7 +18,7 @@ from .capabilities import calendar_tools, tasks_tools, email_tools, system_tools
 from .utils.validation import validate_iso_datetime, validate_email, validate_enum
 
 # Initialize FastMCP server
-mcp = FastMCP("Microsoft-365")
+mcp = FastMCP("Microsoft-365", version="0.1.0")
 
 # Module Toggles (Default to enabled)
 def is_enabled(var_name):
@@ -368,35 +368,49 @@ def get_time_resource() -> str:
     return f"Current Local Time: {data['current_time']}\nTimezone: {data['timezone']}\nDay: {data['day_of_week']}"
 
 # --- Dynamic Prompt ---
+# --- Dynamic Prompt ---
 @mcp.prompt("m365-assistant")
 def m365_assistant_prompt():
+    """在调用本MCP的任何工具或资源前先阅读以下须知内容"""
+    # 重新获取最新的启用状态
+    cal_enabled = is_enabled("ENABLE_CALENDAR")
+    tasks_enabled = is_enabled("ENABLE_TASKS")
+    email_enabled = is_enabled("ENABLE_EMAIL")
+
     enabled_features = []
-    if ENABLE_CALENDAR: enabled_features.append("日历 (Calendar)")
-    if ENABLE_TASKS: enabled_features.append("待办事项 (To Do)")
-    if ENABLE_EMAIL: enabled_features.append("电子邮件 (Outlook)")
+    if cal_enabled: enabled_features.append("日历 (Calendar)")
+    if tasks_enabled: enabled_features.append("待办事项 (To Do)")
+    if email_enabled: enabled_features.append("电子邮件 (Outlook)")
     
-    features_str = "、".join(enabled_features)
+    features_str = "、".join(enabled_features) if enabled_features else "基础系统"
     
-    prompt = f"""你是一个专业的 Microsoft 365 办公助手。
-当前启用的功能模块：{features_str}。
+    # 构建核心指令
+    instructions = [
+        "你是一个专业的 Microsoft 365 办公助手。",
+        f"当前启用的功能模块：{features_str}。",
+        "",
+        "【时区与时间处理核心原则】：",
+        "1. 在处理任何与时间相关的请求前，你【必须】先调用 `get_current_time` 工具或读取 `context://now` resource。",
+        "2. 本服务器自动处理【本地时间 (东八区 UTC+8)】。",
+        "3. 【禁止转换】：请直接使用本地时间进行交互，严禁将时间转换为 UTC 或其他时区。",
+        "4. 【格式要求】：所有输入时间必须符合 ISO 8601 格式（例如：2025-12-23T09:00:00）。",
+        "",
+        "【功能使用指南】："
+    ]
 
-【时区与时间处理核心原则】：
-1. 在处理任何与时间相关的请求前，你【必须】先调用 `get_current_time` 工具或读取 `context://now` 资源。
-2. 本服务器自动处理【本地时间 (东八区 UTC+8)】。
-3. 【禁止转换】：请直接使用本地时间进行交互，严禁将时间转换为 UTC 或其他时区。
-4. 【格式要求】：所有输入时间必须符合 ISO 8601 格式（例如：2025-12-23T09:00:00）。
+    if cal_enabled:
+        instructions.append("- 日历：管理日程安排。当用户询问“是否有空”、“是否有冲突”或“查看忙闲”时，【必须首选】使用 `get_user_schedules` 而非 `list_calendar_events`。")
+    if tasks_enabled:
+        instructions.append("- 待办：管理任务清单。支持设置优先级、截止日期和提醒。")
+    if email_enabled:
+        instructions.append("- 邮件：处理 Outlook 邮件。支持查询收件箱、发送新邮件和删除邮件。")
 
-【功能使用指南】："""
-
-    if ENABLE_CALENDAR:
-        prompt += "\n- 日历：管理日程安排。当用户询问“是否有空”、“是否有冲突”或“查看忙闲”时，【必须首选】使用 `get_user_schedules` 而非 `list_calendar_events`。"
-    if ENABLE_TASKS:
-        prompt += "\n- 待办：管理任务清单。支持设置优先级、截止日期和提醒。"
-    if ENABLE_EMAIL:
-        prompt += "\n- 邮件：处理 Outlook 邮件。支持查询收件箱、发送新邮件和删除邮件。"
-
-    prompt += "\n\n请始终以专业、高效、友好的语气为用户提供服务。"
-    return prompt
+    instructions.append("\n请始终以专业、高效、友好的语气为用户提供服务。")
+    
+    prompt_text = "\n".join(instructions)
+    
+    # 直接返回字符串内容
+    return prompt_text
 
 if __name__ == "__main__":
     mcp.run()
