@@ -139,13 +139,29 @@ if ENABLE_CALENDAR:
     @mcp.tool()
     def get_user_schedules(schedules: List[str], start: str, end: str, availability_view_interval: int = 30):
         """Get free/busy availability (UTC+8)."""
+        client = get_authenticated_client()
+        
+        my_email = None
+        final_schedules = []
         for addr in schedules:
-            validate_email(addr, "schedules")
+            if addr.lower() == "me":
+                if not my_email:
+                    me_info = client.request("GET", "/me").json()
+                    my_email = me_info.get('mail') or me_info.get('userPrincipalName')
+                
+                if my_email:
+                    final_schedules.append(my_email)
+                else:
+                    # Fallback if no email found, though unlikely for an authenticated user
+                    final_schedules.append(addr)
+            else:
+                validate_email(addr, "schedules")
+                final_schedules.append(addr)
+                
         validate_iso_datetime(start, "start")
         validate_iso_datetime(end, "end")
 
-        client = get_authenticated_client()
-        return calendar_tools.get_user_schedules(client, schedules, start, end, availability_view_interval)
+        return calendar_tools.get_user_schedules(client, final_schedules, start, end, availability_view_interval)
 
 # --- Tasks Tools ---
 if ENABLE_TASKS:
