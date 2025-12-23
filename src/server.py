@@ -57,7 +57,9 @@ if ENABLE_CALENDAR:
         is_all_day: bool = False,
         is_online_meeting: bool = False,
         importance: str = "normal",
-        categories: List[str] = None
+        categories: List[str] = None,
+        is_reminder_on: bool = True,
+        reminder_minutes: int = 15
     ):
         """Create a new event in the primary calendar (UTC+8)."""
         client = get_authenticated_client()
@@ -66,7 +68,8 @@ if ENABLE_CALENDAR:
             body=body, body_type=body_type, location=location, 
             attendees=attendees, is_all_day=is_all_day, 
             is_online_meeting=is_online_meeting, importance=importance, 
-            categories=categories
+            categories=categories, is_reminder_on=is_reminder_on, 
+            reminder_minutes=reminder_minutes
         )
 
     @mcp.tool()
@@ -82,7 +85,9 @@ if ENABLE_CALENDAR:
         is_all_day: Optional[bool] = None,
         is_online_meeting: Optional[bool] = None,
         importance: Optional[str] = None,
-        categories: Optional[List[str]] = None
+        categories: Optional[List[str]] = None,
+        is_reminder_on: Optional[bool] = None,
+        reminder_minutes: Optional[int] = None
     ):
         """Update an existing calendar event (UTC+8)."""
         client = get_authenticated_client()
@@ -99,6 +104,8 @@ if ENABLE_CALENDAR:
         if is_online_meeting is not None: kwargs['is_online_meeting'] = is_online_meeting
         if importance is not None: kwargs['importance'] = importance
         if categories is not None: kwargs['categories'] = categories
+        if is_reminder_on is not None: kwargs['is_reminder_on'] = is_reminder_on
+        if reminder_minutes is not None: kwargs['reminder_minutes'] = reminder_minutes
         
         return calendar_tools.update_event(client, event_id, **kwargs)
 

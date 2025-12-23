@@ -25,7 +25,7 @@ def list_events(client, start_date=None, end_date=None):
         for event in data.get("value", [])
     ]
 
-def create_event(client, subject, start, end, body=None, body_type="HTML", location=None, attendees=None, is_all_day=False, is_online_meeting=False, importance="normal", categories=None):
+def create_event(client, subject, start, end, body=None, body_type="HTML", location=None, attendees=None, is_all_day=False, is_online_meeting=False, importance="normal", categories=None, is_reminder_on=True, reminder_minutes=15):
     """
     Create a new event with all supported properties.
     :param attendees: List of email addresses.
@@ -36,7 +36,9 @@ def create_event(client, subject, start, end, body=None, body_type="HTML", locat
         "end": {"dateTime": end, "timeZone": "China Standard Time"},
         "isAllDay": is_all_day,
         "isOnlineMeeting": is_online_meeting,
-        "importance": importance
+        "importance": importance,
+        "isReminderOn": is_reminder_on,
+        "reminderMinutesBeforeStart": reminder_minutes
     }
     
     if body:
@@ -64,7 +66,9 @@ def update_event(client, event_id, **kwargs):
         'is_all_day': 'isAllDay',
         'is_online_meeting': 'isOnlineMeeting',
         'importance': 'importance',
-        'categories': 'categories'
+        'categories': 'categories',
+        'is_reminder_on': 'isReminderOn',
+        'reminder_minutes': 'reminderMinutesBeforeStart'
     }
     
     for arg, api_field in field_map.items():
