@@ -217,12 +217,12 @@ if ENABLE_TASKS:
             body (str, 可选): 任务内容描述。
             body_type (str, 可选): 'text' (纯文本) 或 'html'。默认为 'text'。
             categories (List[str], 可选): 任务关联的分类。
-            due_date (str, 可选): 截止日期。ISO 8601 格式 (如 '2025-12-31T23:59:59')。必须是本地时间。
-            start_date (str, 可选): 开始日期。ISO 8601 格式。必须是本地时间。
-            reminder_date (str, 可选): 提醒日期/时间。ISO 8601 格式。必须是本地时间。
+            due_date (str, 可选): 截止日期。ISO 8601 格式 (如 '2025-12-31T23:59:59')。必须是东八区本地时间 (UTC+8)。
+            start_date (str, 可选): 开始日期。ISO 8601 格式。必须是东八区本地时间 (UTC+8)。
+            reminder_date (str, 可选): 提醒日期/时间。ISO 8601 格式。必须是东八区本地时间 (UTC+8)。
             importance (str, 可选): 重要程度：'low' (低), 'normal' (普通), 'high' (高)。
             status (str, 可选): 任务状态：'notStarted', 'inProgress', 'completed', 'waitingOnOthers', 'deferred'。
-            completed_date (str, 可选): 任务完成日期。ISO 8601 格式。必须是本地时间。
+            completed_date (str, 可选): 任务完成日期。ISO 8601 格式。必须是东八区本地时间 (UTC+8)。
         """
         validate_enum(body_type, ["text", "html"], "body_type")
         validate_iso_datetime(due_date, "due_date")
@@ -263,12 +263,12 @@ if ENABLE_TASKS:
             body (str, 可选): 新内容描述。
             body_type (str, 可选): 'text' 或 'html'。
             categories (List[str], 可选): 新分类列表。
-            due_date (str, 可选): 新截止日期 (ISO 8601)。必须是本地时间。
-            start_date (str, 可选): 新开始日期 (ISO 8601)。必须是本地时间。
-            reminder_date (str, 可选): 新提醒日期 (ISO 8601)。必须是本地时间。
+            due_date (str, 可选): 新截止日期 (ISO 8601)。必须是东八区本地时间 (UTC+8)。
+            start_date (str, 可选): 新开始日期 (ISO 8601)。必须是东八区本地时间 (UTC+8)。
+            reminder_date (str, 可选): 新提醒日期 (ISO 8601)。必须是东八区本地时间 (UTC+8)。
             importance (str, 可选): 'low', 'normal', 'high'。
             status (str, 可选): 'notStarted', 'inProgress', 'completed' 等。
-            completed_date (str, 可选): 新完成日期 (ISO 8601)。必须是本地时间。
+            completed_date (str, 可选): 新完成日期 (ISO 8601)。必须是东八区本地时间 (UTC+8)。
         """
         validate_enum(body_type, ["text", "html"], "body_type")
         validate_iso_datetime(due_date, "due_date")
