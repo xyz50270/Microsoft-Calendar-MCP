@@ -16,14 +16,17 @@ except Exception:
 # Load environment variables
 load_dotenv()
 
-# Scopes
-SCOPES = [
-    'User.Read',
-    'Calendars.ReadWrite',
-    'Tasks.ReadWrite',
-    'Mail.ReadWrite',
-    'Mail.Send'
-]
+# Helper to get dynamic scopes based on environment variables
+def get_scopes():
+    scopes = ['User.Read']
+    if os.getenv("ENABLE_CALENDAR", "true").lower() in ("true", "1", "yes"):
+        scopes.append('Calendars.ReadWrite')
+    if os.getenv("ENABLE_TASKS", "true").lower() in ("true", "1", "yes"):
+        scopes.append('Tasks.ReadWrite')
+    if os.getenv("ENABLE_EMAIL", "true").lower() in ("true", "1", "yes"):
+        scopes.append('Mail.ReadWrite')
+        scopes.append('Mail.Send')
+    return scopes
 
 class GraphClient:
     def __init__(self, client_id, client_secret=None, redirect_uri=None, token_path=None):
@@ -68,8 +71,9 @@ class GraphClient:
     def get_token(self):
         accounts = self.app.get_accounts()
         result = None
+        scopes = get_scopes()
         if accounts:
-            result = self.app.acquire_token_silent(SCOPES, account=accounts[0])
+            result = self.app.acquire_token_silent(scopes, account=accounts[0])
         
         if not result:
             return None
@@ -126,15 +130,16 @@ def get_client():
 
 def authenticate_interactive():
     client = get_client()
+    scopes = get_scopes()
     
     # MSAL Interactive flow
-    flow = client.app.initiate_device_flow(scopes=SCOPES)
+    flow = client.app.initiate_device_flow(scopes=scopes)
     if "user_code" not in flow:
         # Fallback to auth code flow if device flow is not supported/configured
-        auth_url = client.app.get_authorization_url(SCOPES, redirect_uri=client.redirect_uri)
+        auth_url = client.app.get_authorization_url(scopes, redirect_uri=client.redirect_uri)
         print(f"Please visit this URL to authorize: {auth_url}")
         code = input("Enter the code from the redirect URL: ")
-        result = client.app.acquire_token_by_authorization_code(code, scopes=SCOPES, redirect_uri=client.redirect_uri)
+        result = client.app.acquire_token_by_authorization_code(code, scopes=scopes, redirect_uri=client.redirect_uri)
     else:
         print(flow["message"])
         result = client.app.acquire_token_by_device_flow(flow)
