@@ -1,6 +1,8 @@
 import os
 import ssl
 import sys
+import re
+from datetime import datetime
 from typing import Optional, List
 
 # Windows OpenSSL Applink Fix
@@ -26,6 +28,27 @@ ENABLE_CALENDAR = is_enabled("ENABLE_CALENDAR")
 ENABLE_TASKS = is_enabled("ENABLE_TASKS")
 ENABLE_EMAIL = is_enabled("ENABLE_EMAIL")
 
+# --- Validation Helpers ---
+
+def validate_iso_datetime(dt_str: Optional[str], name: str):
+    if not dt_str:
+        return
+    try:
+        # Check if it follows a basic ISO-like pattern first to give better error
+        if not re.match(r"^\d{4}-\d{2}-\d{2}(T\d{2}:\d{2}:\d{2})?.*$", dt_str):
+            raise ValueError(f"Parameter '{name}' must be an ISO format date string (e.g., YYYY-MM-DD or YYYY-MM-DDTHH:MM:SS). Received: {dt_str}")
+        datetime.fromisoformat(dt_str.replace('Z', '+00:00'))
+    except ValueError as e:
+        raise ValueError(f"Invalid ISO datetime for '{name}': {str(e)}")
+
+def validate_email(email: str, name: str):
+    if not re.match(r"^[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+$", email):
+        raise ValueError(f"Invalid email address for '{name}': {email}")
+
+def validate_enum(value: Optional[str], valid_values: List[str], name: str):
+    if value is not None and value.lower() not in [v.lower() for v in valid_values]:
+        raise ValueError(f"Invalid value for '{name}'. Must be one of {valid_values}. Received: {value}")
+
 # Helper to get authenticated client
 def get_authenticated_client():
     client = get_client()
@@ -42,6 +65,8 @@ if ENABLE_CALENDAR:
         [MANDATORY] CALL `get_current_time` first.
         TIMEZONE NOTE: All date strings should be in LOCAL time (UTC+8).
         """
+        validate_iso_datetime(start_date, "start_date")
+        validate_iso_datetime(end_date, "end_date")
         client = get_authenticated_client()
         return calendar_tools.list_events(client, start_date, end_date)
 
@@ -62,6 +87,14 @@ if ENABLE_CALENDAR:
         reminder_minutes: int = 15
     ):
         """Create a new event in the primary calendar (UTC+8)."""
+        validate_iso_datetime(start, "start")
+        validate_iso_datetime(end, "end")
+        validate_enum(body_type, ["Text", "HTML"], "body_type")
+        validate_enum(importance, ["low", "normal", "high"], "importance")
+        if attendees:
+            for addr in attendees:
+                validate_email(addr, "attendees")
+        
         client = get_authenticated_client()
         return calendar_tools.create_event(
             client, subject, start, end, 
@@ -90,6 +123,14 @@ if ENABLE_CALENDAR:
         reminder_minutes: Optional[int] = None
     ):
         """Update an existing calendar event (UTC+8)."""
+        validate_iso_datetime(start, "start")
+        validate_iso_datetime(end, "end")
+        validate_enum(body_type, ["Text", "HTML"], "body_type")
+        validate_enum(importance, ["low", "normal", "high"], "importance")
+        if attendees:
+            for addr in attendees:
+                validate_email(addr, "attendees")
+
         client = get_authenticated_client()
         # Collect provided arguments
         kwargs = {}
@@ -118,6 +159,11 @@ if ENABLE_CALENDAR:
     @mcp.tool()
     def get_user_schedules(schedules: List[str], start: str, end: str, availability_view_interval: int = 30):
         """Get free/busy availability (UTC+8)."""
+        for addr in schedules:
+            validate_email(addr, "schedules")
+        validate_iso_datetime(start, "start")
+        validate_iso_datetime(end, "end")
+
         client = get_authenticated_client()
         return calendar_tools.get_user_schedules(client, schedules, start, end, availability_view_interval)
 
@@ -143,6 +189,14 @@ if ENABLE_TASKS:
         completed_date: Optional[str] = None
     ):
         """Create a new task in Microsoft To Do (UTC+8)."""
+        validate_enum(body_type, ["text", "html"], "body_type")
+        validate_iso_datetime(due_date, "due_date")
+        validate_iso_datetime(start_date, "start_date")
+        validate_iso_datetime(reminder_date, "reminder_date")
+        validate_iso_datetime(completed_date, "completed_date")
+        validate_enum(importance, ["low", "normal", "high"], "importance")
+        validate_enum(status, ["notStarted", "inProgress", "completed", "waitingOnOthers", "deferred"], "status")
+
         client = get_authenticated_client()
         return tasks_tools.create_task(
             client, title, body=body, body_type=body_type, 
@@ -166,6 +220,14 @@ if ENABLE_TASKS:
         completed_date: Optional[str] = None
     ):
         """Update an existing task in Microsoft To Do (UTC+8)."""
+        validate_enum(body_type, ["text", "html"], "body_type")
+        validate_iso_datetime(due_date, "due_date")
+        validate_iso_datetime(start_date, "start_date")
+        validate_iso_datetime(reminder_date, "reminder_date")
+        validate_iso_datetime(completed_date, "completed_date")
+        validate_enum(importance, ["low", "normal", "high"], "importance")
+        validate_enum(status, ["notStarted", "inProgress", "completed", "waitingOnOthers", "deferred"], "status")
+
         client = get_authenticated_client()
         # Collect provided arguments
         kwargs = {}
@@ -205,6 +267,7 @@ if ENABLE_EMAIL:
     @mcp.tool()
     def send_email(to: str, subject: str, body: str):
         """Send an email."""
+        validate_email(to, "to")
         client = get_authenticated_client()
         return email_tools.send_email(client, to, subject, body)
 
@@ -244,7 +307,7 @@ TIMEZONE HANDLING:
 1. You MUST call `get_current_time` or read `context://now` first.
 2. The server handles LOCAL time (UTC+8) automatically. Do NOT perform UTC conversions.
 
-指令：你是一个专业的 Microsoft 365 办公助手。
+指令：你是一个专业的 Microsoft 365 办公助手任务。
 当前启用的模块：{features_str}。
 
 时区处理提示：

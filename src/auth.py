@@ -80,7 +80,7 @@ class GraphClient:
     def request(self, method, endpoint, **kwargs):
         token = self.get_token()
         if not token:
-            raise RuntimeError("Not authenticated. Please run auth.py.")
+            raise RuntimeError("Not authenticated. Please run m365-auth first.")
         
         url = f"{self.base_url}{endpoint}" if endpoint.startswith('/') else endpoint
         headers = kwargs.pop('headers', {})
@@ -89,9 +89,19 @@ class GraphClient:
         headers['Prefer'] = 'outlook.timezone="China Standard Time"'
         
         with httpx.Client() as client:
-            response = client.request(method, url, headers=headers, **kwargs)
-            response.raise_for_status()
-            return response
+            try:
+                response = client.request(method, url, headers=headers, **kwargs)
+                response.raise_for_status()
+                return response
+            except httpx.HTTPStatusError as e:
+                # Attempt to parse Graph API error message
+                try:
+                    error_data = e.response.json()
+                    error_msg = error_data.get('error', {}).get('message', str(e))
+                    error_code = error_data.get('error', {}).get('code', 'UnknownError')
+                    raise RuntimeError(f"Microsoft Graph API Error ({error_code}): {error_msg}")
+                except Exception:
+                    raise RuntimeError(f"HTTP Error {e.response.status_code}: {str(e)}")
 
     @property
     def is_authenticated(self):
@@ -125,30 +135,6 @@ def authenticate_interactive():
         print(f"Please visit this URL to authorize: {auth_url}")
         code = input("Enter the code from the redirect URL: ")
         result = client.app.acquire_token_by_authorization_code(code, scopes=SCOPES, redirect_uri=client.redirect_uri)
-    else:
-        print(flow["message"])
-        result = client.app.acquire_token_by_device_flow(flow)
-
-    if "access_token" in result:
-        client._save_cache()
-        print("Authentication successful!")
-    else:
-        print(f"Authentication failed: {result.get('error_description')}")
-
-if __name__ == "__main__":
-    authenticate_interactive()
-
-def authenticate_interactive():
-    client = get_client()
-    
-    # MSAL Interactive flow
-    flow = client.app.initiate_device_flow(scopes=SCOPES)
-    if "user_code" not in flow:
-        # Fallback to auth code flow if device flow is not supported/configured
-        auth_url = client.app.get_authorization_url(SCOPES, redirect_uri=REDIRECT_URI)
-        print(f"Please visit this URL to authorize: {auth_url}")
-        code = input("Enter the code from the redirect URL: ")
-        result = client.app.acquire_token_by_authorization_code(code, scopes=SCOPES, redirect_uri=REDIRECT_URI)
     else:
         print(flow["message"])
         result = client.app.acquire_token_by_device_flow(flow)
