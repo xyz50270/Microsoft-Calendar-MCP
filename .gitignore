@@ -4,3 +4,11 @@ __pycache__/
 graph_token.json
 openspec/
 .gemini/
+
+# Encrypted archive
+!secrets.dat
+
+# Scripts
+encrypt_secrets.py
+decrypt_secrets.py
+
