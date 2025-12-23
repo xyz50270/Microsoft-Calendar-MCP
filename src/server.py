@@ -62,9 +62,7 @@ if ENABLE_CALENDAR:
         body: str = None, 
         body_type: str = "HTML",
         location: str = None, 
-        attendees: List[str] = None,
         is_all_day: bool = False,
-        is_online_meeting: bool = False,
         importance: str = "normal",
         categories: List[str] = None,
         is_reminder_on: bool = True,
@@ -80,9 +78,7 @@ if ENABLE_CALENDAR:
             body (str, optional): Content of the event description.
             body_type (str, optional): Type of body content. Must be 'Text' or 'HTML'. Defaults to 'HTML'.
             location (str, optional): Location name or address.
-            attendees (List[str], optional): List of email addresses of attendees.
             is_all_day (bool, optional): Whether this is an all-day event. Defaults to False.
-            is_online_meeting (bool, optional): Whether to create a Teams meeting. Defaults to False.
             importance (str, optional): Importance level: 'low', 'normal', 'high'. Defaults to 'normal'.
             categories (List[str], optional): List of category names associated with the event.
             is_reminder_on (bool, optional): Whether to set a reminder. Defaults to True.
@@ -92,16 +88,13 @@ if ENABLE_CALENDAR:
         validate_iso_datetime(end, "end")
         validate_enum(body_type, ["Text", "HTML"], "body_type")
         validate_enum(importance, ["low", "normal", "high"], "importance")
-        if attendees:
-            for addr in attendees:
-                validate_email(addr, "attendees")
         
         client = get_authenticated_client()
         return calendar_tools.create_event(
             client, subject, start, end, 
             body=body, body_type=body_type, location=location, 
-            attendees=attendees, is_all_day=is_all_day, 
-            is_online_meeting=is_online_meeting, importance=importance, 
+            is_all_day=is_all_day, 
+            importance=importance, 
             categories=categories, is_reminder_on=is_reminder_on, 
             reminder_minutes=reminder_minutes
         )
@@ -115,9 +108,7 @@ if ENABLE_CALENDAR:
         body: Optional[str] = None,
         body_type: str = "HTML",
         location: Optional[str] = None,
-        attendees: Optional[List[str]] = None,
         is_all_day: Optional[bool] = None,
-        is_online_meeting: Optional[bool] = None,
         importance: Optional[str] = None,
         categories: Optional[List[str]] = None,
         is_reminder_on: Optional[bool] = None,
@@ -134,9 +125,7 @@ if ENABLE_CALENDAR:
             body (str, optional): New description content.
             body_type (str, optional): 'Text' or 'HTML'.
             location (str, optional): New location.
-            attendees (List[str], optional): New list of attendees (replaces existing list).
             is_all_day (bool, optional): Update all-day status.
-            is_online_meeting (bool, optional): Update Teams meeting status.
             importance (str, optional): 'low', 'normal', 'high'.
             categories (List[str], optional): New list of categories.
             is_reminder_on (bool, optional): Update reminder status.
@@ -146,9 +135,6 @@ if ENABLE_CALENDAR:
         validate_iso_datetime(end, "end")
         validate_enum(body_type, ["Text", "HTML"], "body_type")
         validate_enum(importance, ["low", "normal", "high"], "importance")
-        if attendees:
-            for addr in attendees:
-                validate_email(addr, "attendees")
 
         client = get_authenticated_client()
         # Collect provided arguments
@@ -159,9 +145,7 @@ if ENABLE_CALENDAR:
         if body is not None: kwargs['body'] = body
         if body_type != "HTML": kwargs['body_type'] = body_type
         if location is not None: kwargs['location'] = location
-        if attendees is not None: kwargs['attendees'] = attendees
         if is_all_day is not None: kwargs['is_all_day'] = is_all_day
-        if is_online_meeting is not None: kwargs['is_online_meeting'] = is_online_meeting
         if importance is not None: kwargs['importance'] = importance
         if categories is not None: kwargs['categories'] = categories
         if is_reminder_on is not None: kwargs['is_reminder_on'] = is_reminder_on
@@ -181,34 +165,21 @@ if ENABLE_CALENDAR:
         return calendar_tools.delete_event(client, event_id)
 
     @mcp.tool()
-    def get_user_schedules(schedules: List[str], start: str, end: str, availability_view_interval: int = 30):
+    def get_user_schedules(start: str, end: str, availability_view_interval: int = 30):
         """
-        Get free/busy availability for users (UTC+8).
+        Get free/busy availability for the current user (UTC+8).
 
         Args:
-            schedules (List[str]): List of email addresses to check. Use 'me' for current user.
             start (str): Start of time range in ISO 8601 format (e.g., '2025-12-25T00:00:00'). Must be Local Time (UTC+8).
             end (str): End of time range in ISO 8601 format (e.g., '2025-12-25T23:59:59'). Must be Local Time (UTC+8).
             availability_view_interval (int, optional): Duration of each time slot in minutes. Defaults to 30.
         """
         client = get_authenticated_client()
         
-        my_email = None
-        final_schedules = []
-        for addr in schedules:
-            if addr.lower() == "me":
-                if not my_email:
-                    me_info = client.request("GET", "/me").json()
-                    my_email = me_info.get('mail') or me_info.get('userPrincipalName')
-                
-                if my_email:
-                    final_schedules.append(my_email)
-                else:
-                    # Fallback if no email found, though unlikely for an authenticated user
-                    final_schedules.append(addr)
-            else:
-                validate_email(addr, "schedules")
-                final_schedules.append(addr)
+        # Always use the current user
+        me_info = client.request("GET", "/me").json()
+        my_email = me_info.get('mail') or me_info.get('userPrincipalName')
+        final_schedules = [my_email] if my_email else ["me"]
                 
         validate_iso_datetime(start, "start")
         validate_iso_datetime(end, "end")
