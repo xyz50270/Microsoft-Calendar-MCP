@@ -33,7 +33,7 @@ ENABLE_EMAIL = is_enabled("ENABLE_EMAIL")
 def get_authenticated_client():
     client = get_client()
     if not client.is_authenticated:
-        raise RuntimeError("Account not authenticated. Please run m365-auth first.")
+        raise RuntimeError("账号未认证。请先运行 m365-auth 进行登录。")
     return client
 
 # --- Calendar Tools ---
@@ -41,13 +41,13 @@ if ENABLE_CALENDAR:
     @mcp.tool()
     def list_calendar_events(start_date: str = None, end_date: str = None):
         """
-        List events from the user's primary calendar.
-        [MANDATORY] CALL `get_current_time` first.
-        TIMEZONE NOTE: All date strings should be in LOCAL time (UTC+8).
+        列出用户主日历中的事件。
+        [注意] 调用前请务必先执行 `get_current_time` 获取当前时间。
+        [时区] 所有日期字符串必须使用本地时间 (UTC+8)。
 
-        Args:
-            start_date (str, optional): The start of the time range. ISO 8601 format (e.g., '2025-12-23T00:00:00'). Must be Local Time (UTC+8).
-            end_date (str, optional): The end of the time range. ISO 8601 format (e.g., '2025-12-23T23:59:59'). Must be Local Time (UTC+8).
+        参数:
+            start_date (str, 可选): 查询范围的开始时间。ISO 8601 格式 (如 '2025-12-23T00:00:00')。必须是本地时间。
+            end_date (str, 可选): 查询范围的结束时间。ISO 8601 格式 (如 '2025-12-23T23:59:59')。必须是本地时间。
         """
         validate_iso_datetime(start_date, "start_date")
         validate_iso_datetime(end_date, "end_date")
@@ -69,20 +69,20 @@ if ENABLE_CALENDAR:
         reminder_minutes: int = 15
     ):
         """
-        Create a new event in the primary calendar (UTC+8).
+        在主日历中创建新日程 (UTC+8)。
 
-        Args:
-            subject (str): The title/subject of the event.
-            start (str): Start time in ISO 8601 format (e.g., '2025-12-25T09:00:00'). Must be Local Time (UTC+8).
-            end (str): End time in ISO 8601 format (e.g., '2025-12-25T10:00:00'). Must be Local Time (UTC+8).
-            body (str, optional): Content of the event description.
-            body_type (str, optional): Type of body content. Must be 'Text' or 'HTML'. Defaults to 'HTML'.
-            location (str, optional): Location name or address.
-            is_all_day (bool, optional): Whether this is an all-day event. Defaults to False.
-            importance (str, optional): Importance level: 'low', 'normal', 'high'. Defaults to 'normal'.
-            categories (List[str], optional): List of category names associated with the event.
-            is_reminder_on (bool, optional): Whether to set a reminder. Defaults to True.
-            reminder_minutes (int, optional): Minutes before start to show reminder. Defaults to 15.
+        参数:
+            subject (str): 日程标题。
+            start (str): 开始时间。ISO 8601 格式 (如 '2025-12-25T09:00:00')。必须是本地时间。
+            end (str): 结束时间。ISO 8601 格式 (如 '2025-12-25T10:00:00')。必须是本地时间。
+            body (str, 可选): 日程内容描述。
+            body_type (str, 可选): 内容类型，可选 'Text' 或 'HTML'。默认为 'HTML'。
+            location (str, 可选): 地点名称。
+            is_all_day (bool, optional): 是否为全天事件。默认为 False。
+            importance (str, optional): 重要程度：'low' (低), 'normal' (普通), 'high' (高)。默认为 'normal'。
+            categories (List[str], optional): 关联的分类名称列表。
+            is_reminder_on (bool, optional): 是否设置提醒。默认为 True。
+            reminder_minutes (int, optional): 开始前多少分钟发出提醒。默认为 15。
         """
         validate_iso_datetime(start, "start")
         validate_iso_datetime(end, "end")
@@ -115,21 +115,21 @@ if ENABLE_CALENDAR:
         reminder_minutes: Optional[int] = None
     ):
         """
-        Update an existing calendar event (UTC+8). Only provided fields will be updated.
+        更新现有的日历事件 (UTC+8)。仅更新提供的字段。
 
-        Args:
-            event_id (str): The unique ID of the event to update.
-            subject (str, optional): New title/subject.
-            start (str, optional): New start time in ISO 8601 format. Must be Local Time (UTC+8).
-            end (str, optional): New end time in ISO 8601 format. Must be Local Time (UTC+8).
-            body (str, optional): New description content.
-            body_type (str, optional): 'Text' or 'HTML'.
-            location (str, optional): New location.
-            is_all_day (bool, optional): Update all-day status.
-            importance (str, optional): 'low', 'normal', 'high'.
-            categories (List[str], optional): New list of categories.
-            is_reminder_on (bool, optional): Update reminder status.
-            reminder_minutes (int, optional): Update reminder lead time.
+        参数:
+            event_id (str): 待更新事件的唯一 ID。
+            subject (str, 可选): 新标题。
+            start (str, 可选): 新开始时间 (ISO 8601)。必须是本地时间。
+            end (str, 可选): 新结束时间 (ISO 8601)。必须是本地时间。
+            body (str, 可选): 新内容描述。
+            body_type (str, 可选): 'Text' 或 'HTML'。
+            location (str, 可选): 新地点。
+            is_all_day (bool, 可选): 是否更新为全天事件。
+            importance (str, 可选): 重要程度：'low', 'normal', 'high'。
+            categories (List[str], 可选): 新的分类列表。
+            is_reminder_on (bool, 可选): 是否开启提醒。
+            reminder_minutes (int, 可选): 提醒提前分钟数。
         """
         validate_iso_datetime(start, "start")
         validate_iso_datetime(end, "end")
@@ -156,10 +156,10 @@ if ENABLE_CALENDAR:
     @mcp.tool()
     def delete_calendar_event(event_id: str):
         """
-        Delete a calendar event.
+        删除日历事件。
 
-        Args:
-            event_id (str): The unique ID of the event to delete.
+        参数:
+            event_id (str): 待删除事件的唯一 ID。
         """
         client = get_authenticated_client()
         return calendar_tools.delete_event(client, event_id)
@@ -167,12 +167,14 @@ if ENABLE_CALENDAR:
     @mcp.tool()
     def get_user_schedules(start: str, end: str, availability_view_interval: int = 30):
         """
-        Get free/busy availability for the current user (UTC+8).
+        [首选] 检查当前用户在特定时间段内是否有空 (UTC+8)。
+        当用户询问“我是否有空？”、“是否有冲突？”或“检查我的忙闲”时，请务必【优先】使用此工具而非 list_calendar_events。
+        它能更高效、更直观地提供时间段的占用情况。
 
-        Args:
-            start (str): Start of time range in ISO 8601 format (e.g., '2025-12-25T00:00:00'). Must be Local Time (UTC+8).
-            end (str): End of time range in ISO 8601 format (e.g., '2025-12-25T23:59:59'). Must be Local Time (UTC+8).
-            availability_view_interval (int, optional): Duration of each time slot in minutes. Defaults to 30.
+        参数:
+            start (str): 查询范围的开始时间。ISO 8601 格式 (如 '2025-12-23T00:00:00')。必须是本地时间。
+            end (str): 查询范围的结束时间。ISO 8601 格式 (如 '2025-12-23T23:59:59')。必须是本地时间。
+            availability_view_interval (int, 可选): 响应中每个时间槽的持续分钟数。默认为 30。
         """
         client = get_authenticated_client()
         
@@ -190,7 +192,7 @@ if ENABLE_CALENDAR:
 if ENABLE_TASKS:
     @mcp.tool()
     def list_tasks():
-        """List tasks from the user's default To Do list."""
+        """列出用户默认待办事项列表中的任务。"""
         client = get_authenticated_client()
         return tasks_tools.list_tasks(client)
 
@@ -208,19 +210,19 @@ if ENABLE_TASKS:
         completed_date: Optional[str] = None
     ):
         """
-        Create a new task in Microsoft To Do (UTC+8).
+        在 Microsoft To Do 中创建新任务 (UTC+8)。
 
-        Args:
-            title (str): The title of the task.
-            body (str, optional): The description of the task.
-            body_type (str, optional): 'text' or 'html'. Defaults to 'text'.
-            categories (List[str], optional): Categories to associate with the task.
-            due_date (str, optional): Due date in ISO 8601 format (e.g., '2025-12-31T23:59:59'). Must be Local Time (UTC+8).
-            start_date (str, optional): Start date in ISO 8601 format. Must be Local Time (UTC+8).
-            reminder_date (str, optional): Reminder date/time in ISO 8601 format. Must be Local Time (UTC+8).
-            importance (str, optional): Importance: 'low', 'normal', 'high'.
-            status (str, optional): Task status: 'notStarted', 'inProgress', 'completed', 'waitingOnOthers', 'deferred'.
-            completed_date (str, optional): Date the task was completed in ISO 8601 format. Must be Local Time (UTC+8).
+        参数:
+            title (str): 任务标题。
+            body (str, 可选): 任务内容描述。
+            body_type (str, 可选): 'text' (纯文本) 或 'html'。默认为 'text'。
+            categories (List[str], 可选): 任务关联的分类。
+            due_date (str, 可选): 截止日期。ISO 8601 格式 (如 '2025-12-31T23:59:59')。必须是本地时间。
+            start_date (str, 可选): 开始日期。ISO 8601 格式。必须是本地时间。
+            reminder_date (str, 可选): 提醒日期/时间。ISO 8601 格式。必须是本地时间。
+            importance (str, 可选): 重要程度：'low' (低), 'normal' (普通), 'high' (高)。
+            status (str, 可选): 任务状态：'notStarted', 'inProgress', 'completed', 'waitingOnOthers', 'deferred'。
+            completed_date (str, 可选): 任务完成日期。ISO 8601 格式。必须是本地时间。
         """
         validate_enum(body_type, ["text", "html"], "body_type")
         validate_iso_datetime(due_date, "due_date")
@@ -253,20 +255,20 @@ if ENABLE_TASKS:
         completed_date: Optional[str] = None
     ):
         """
-        Update an existing task in Microsoft To Do (UTC+8).
+        更新 Microsoft To Do 中现有的任务 (UTC+8)。
 
-        Args:
-            task_id (str): Unique ID of the task to update.
-            title (str, optional): New title.
-            body (str, optional): New description.
-            body_type (str, optional): 'text' or 'html'.
-            categories (List[str], optional): New list of categories.
-            due_date (str, optional): New due date (ISO 8601). Must be Local Time (UTC+8).
-            start_date (str, optional): New start date (ISO 8601). Must be Local Time (UTC+8).
-            reminder_date (str, optional): New reminder date (ISO 8601). Must be Local Time (UTC+8).
-            importance (str, optional): 'low', 'normal', 'high'.
-            status (str, optional): 'notStarted', 'inProgress', 'completed', etc.
-            completed_date (str, optional): New completion date (ISO 8601). Must be Local Time (UTC+8).
+        参数:
+            task_id (str): 待更新任务的唯一 ID。
+            title (str, 可选): 新标题。
+            body (str, 可选): 新内容描述。
+            body_type (str, 可选): 'text' 或 'html'。
+            categories (List[str], 可选): 新分类列表。
+            due_date (str, 可选): 新截止日期 (ISO 8601)。必须是本地时间。
+            start_date (str, 可选): 新开始日期 (ISO 8601)。必须是本地时间。
+            reminder_date (str, 可选): 新提醒日期 (ISO 8601)。必须是本地时间。
+            importance (str, 可选): 'low', 'normal', 'high'。
+            status (str, 可选): 'notStarted', 'inProgress', 'completed' 等。
+            completed_date (str, 可选): 新完成日期 (ISO 8601)。必须是本地时间。
         """
         validate_enum(body_type, ["text", "html"], "body_type")
         validate_iso_datetime(due_date, "due_date")
@@ -295,10 +297,10 @@ if ENABLE_TASKS:
     @mcp.tool()
     def complete_task(task_id: str):
         """
-        Mark a task as completed.
+        将任务标记为已完成。
 
-        Args:
-            task_id (str): Unique ID of the task to complete.
+        参数:
+            task_id (str): 待完成任务的唯一 ID。
         """
         client = get_authenticated_client()
         return tasks_tools.update_task(client, task_id, completed=True)
@@ -306,10 +308,10 @@ if ENABLE_TASKS:
     @mcp.tool()
     def delete_task(task_id: str):
         """
-        Delete a task.
+        删除任务。
 
-        Args:
-            task_id (str): Unique ID of the task to delete.
+        参数:
+            task_id (str): 待删除任务的唯一 ID。
         """
         client = get_authenticated_client()
         return tasks_tools.delete_task(client, task_id)
@@ -319,10 +321,10 @@ if ENABLE_EMAIL:
     @mcp.tool()
     def list_emails(limit: int = 10):
         """
-        List recent emails from the inbox (UTC+8).
+        列出收件箱中的最近邮件 (UTC+8)。
 
-        Args:
-            limit (int, optional): Maximum number of emails to return. Defaults to 10.
+        参数:
+            limit (int, 可选): 返回邮件的最大数量。默认为 10。
         """
         client = get_authenticated_client()
         return email_tools.list_emails(client, limit)
@@ -330,12 +332,12 @@ if ENABLE_EMAIL:
     @mcp.tool()
     def send_email(to: str, subject: str, body: str):
         """
-        Send an email.
+        发送电子邮件。
 
-        Args:
-            to (str): Email address of the recipient.
-            subject (str): Subject of the email.
-            body (str): Content of the email.
+        参数:
+            to (str): 收件人邮箱地址。
+            subject (str): 邮件主题。
+            body (str): 邮件正文内容。
         """
         validate_email(to, "to")
         client = get_authenticated_client()
@@ -344,10 +346,10 @@ if ENABLE_EMAIL:
     @mcp.tool()
     def delete_email(message_id: str):
         """
-        Delete an email.
+        删除电子邮件。
 
-        Args:
-            message_id (str): Unique ID of the message to delete.
+        参数:
+            message_id (str): 待删除邮件的唯一 ID。
         """
         client = get_authenticated_client()
         return email_tools.delete_email(client, message_id)
@@ -355,7 +357,7 @@ if ENABLE_EMAIL:
 # --- System Tools ---
 @mcp.tool()
 def get_current_time():
-    """Get current local time (UTC+8). MANDATORY for relative time handling."""
+    """获取当前本地时间 (UTC+8)。处理相对时间请求时，请【必须】先调用此工具以获取参考时间。"""
     return system_tools.get_current_time()
 
 # --- Resources ---
@@ -369,33 +371,31 @@ def get_time_resource() -> str:
 @mcp.prompt("m365-assistant")
 def m365_assistant_prompt():
     enabled_features = []
-    if ENABLE_CALENDAR: enabled_features.append("Calendar (日历)")
-    if ENABLE_TASKS: enabled_features.append("To Do Tasks (待办)")
-    if ENABLE_EMAIL: enabled_features.append("Email (邮件)")
+    if ENABLE_CALENDAR: enabled_features.append("日历 (Calendar)")
+    if ENABLE_TASKS: enabled_features.append("待办事项 (To Do)")
+    if ENABLE_EMAIL: enabled_features.append("电子邮件 (Outlook)")
     
-    features_str = ", ".join(enabled_features)
+    features_str = "、".join(enabled_features)
     
-    prompt = f"""You are a professional Microsoft 365 productivity assistant.
-Current enabled features: {features_str}.
+    prompt = f"""你是一个专业的 Microsoft 365 办公助手。
+当前启用的功能模块：{features_str}。
 
-TIMEZONE HANDLING:
-1. You MUST call `get_current_time` or read `context://now` first.
-2. The server handles LOCAL time (UTC+8) automatically. Do NOT perform UTC conversions.
+【时区与时间处理核心原则】：
+1. 在处理任何与时间相关的请求前，你【必须】先调用 `get_current_time` 工具或读取 `context://now` 资源。
+2. 本服务器自动处理【本地时间 (东八区 UTC+8)】。
+3. 【禁止转换】：请直接使用本地时间进行交互，严禁将时间转换为 UTC 或其他时区。
+4. 【格式要求】：所有输入时间必须符合 ISO 8601 格式（例如：2025-12-23T09:00:00）。
 
-指令：你是一个专业的 Microsoft 365 办公助手。
-当前启用的模块：{features_str}。
-
-时区处理提示：
-1. 你必须先通过 `get_current_time` 或 `context://now` 获取时间。
-2. 系统自动处理本地时间 (UTC+8)，严禁进行手动的 UTC 转换。"""
+【功能使用指南】："""
 
     if ENABLE_CALENDAR:
-        prompt += "\n- 你可以管理日历事件，支持查看、创建、更新和删除日程。"
+        prompt += "\n- 日历：管理日程安排。当用户询问“是否有空”、“是否有冲突”或“查看忙闲”时，【必须首选】使用 `get_user_schedules` 而非 `list_calendar_events`。"
     if ENABLE_TASKS:
-        prompt += "\n- 你可以管理待办事项，支持任务的完整生命周期管理。"
+        prompt += "\n- 待办：管理任务清单。支持设置优先级、截止日期和提醒。"
     if ENABLE_EMAIL:
-        prompt += "\n- 你可以管理电子邮件，支持收件箱列表查询、发送和删除邮件。"
-        
+        prompt += "\n- 邮件：处理 Outlook 邮件。支持查询收件箱、发送新邮件和删除邮件。"
+
+    prompt += "\n\n请始终以专业、高效、友好的语气为用户提供服务。"
     return prompt
 
 if __name__ == "__main__":

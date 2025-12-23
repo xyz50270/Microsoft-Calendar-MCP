@@ -6,17 +6,17 @@ import httpx
 import msal
 from dotenv import load_dotenv
 
-# Windows OpenSSL Applink Fix
+# Windows OpenSSL Applink 修复
 try:
     if sys.platform == "win32":
         ssl.create_default_context()
 except Exception:
     pass
 
-# Load environment variables
+# 加载环境变量
 load_dotenv()
 
-# Helper to get dynamic scopes based on environment variables
+# 根据环境变量获取动态权限范围的辅助函数
 def get_scopes():
     scopes = ['User.Read']
     if os.getenv("ENABLE_CALENDAR", "true").lower() in ("true", "1", "yes"):
@@ -37,7 +37,7 @@ class GraphClient:
         self.authority = "https://login.microsoftonline.com/common"
         self.base_url = "https://graph.microsoft.com/v1.0"
         
-        # Use SerializableTokenCache for persistence
+        # 使用 SerializableTokenCache 进行持久化存储
         self._token_cache = msal.SerializableTokenCache()
         self._load_cache()
 
@@ -84,12 +84,12 @@ class GraphClient:
     def request(self, method, endpoint, **kwargs):
         token = self.get_token()
         if not token:
-            raise RuntimeError("Not authenticated. Please run m365-auth first.")
+            raise RuntimeError("账号未认证。请先运行 m365-auth。")
         
         url = f"{self.base_url}{endpoint}" if endpoint.startswith('/') else endpoint
         headers = kwargs.pop('headers', {})
         headers['Authorization'] = f"Bearer {token}"
-        # Set default timezone to China Standard Time (UTC+8)
+        # 设置默认时区为中国标准时间 (UTC+8)
         headers['Prefer'] = 'outlook.timezone="China Standard Time"'
         
         with httpx.Client() as client:
@@ -98,14 +98,14 @@ class GraphClient:
                 response.raise_for_status()
                 return response
             except httpx.HTTPStatusError as e:
-                # Attempt to parse Graph API error message
+                # 尝试解析 Graph API 错误信息
                 try:
                     error_data = e.response.json()
                     error_msg = error_data.get('error', {}).get('message', str(e))
                     error_code = error_data.get('error', {}).get('code', 'UnknownError')
-                    raise RuntimeError(f"Microsoft Graph API Error ({error_code}): {error_msg}")
+                    raise RuntimeError(f"Microsoft Graph API 错误 ({error_code}): {error_msg}")
                 except Exception:
-                    raise RuntimeError(f"HTTP Error {e.response.status_code}: {str(e)}")
+                    raise RuntimeError(f"HTTP 错误 {e.response.status_code}: {str(e)}")
 
     @property
     def is_authenticated(self):
@@ -118,7 +118,7 @@ def get_client():
     token_path = os.getenv('MS_GRAPH_TOKEN_PATH')
 
     if not client_id:
-        print("Error: MS_GRAPH_CLIENT_ID must be set in .env file or environment variables.")
+        print("错误：必须在 .env 文件或环境变量中设置 MS_GRAPH_CLIENT_ID。")
         sys.exit(1)
     
     return GraphClient(
@@ -132,13 +132,13 @@ def authenticate_interactive():
     client = get_client()
     scopes = get_scopes()
     
-    # MSAL Interactive flow
+    # MSAL 交互式流程
     flow = client.app.initiate_device_flow(scopes=scopes)
     if "user_code" not in flow:
-        # Fallback to auth code flow if device flow is not supported/configured
+        # 如果不支持/未配置设备流，则回退到授权码流程
         auth_url = client.app.get_authorization_url(scopes, redirect_uri=client.redirect_uri)
-        print(f"Please visit this URL to authorize: {auth_url}")
-        code = input("Enter the code from the redirect URL: ")
+        print(f"请访问此 URL 进行授权：{auth_url}")
+        code = input("请输入重定向 URL 中的代码：")
         result = client.app.acquire_token_by_authorization_code(code, scopes=scopes, redirect_uri=client.redirect_uri)
     else:
         print(flow["message"])
@@ -146,9 +146,9 @@ def authenticate_interactive():
 
     if "access_token" in result:
         client._save_cache()
-        print("Authentication successful!")
+        print("认证成功！")
     else:
-        print(f"Authentication failed: {result.get('error_description')}")
+        print(f"认证失败：{result.get('error_description')}")
 
 if __name__ == "__main__":
     authenticate_interactive()

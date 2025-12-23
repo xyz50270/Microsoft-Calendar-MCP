@@ -7,7 +7,7 @@ def _get_default_todo_list_id(client):
     return lists[0].get("id") if lists else None
 
 def list_tasks(client):
-    """List tasks from the default To Do list."""
+    """列出默认待办列表中的任务。"""
     list_id = _get_default_todo_list_id(client)
     if not list_id:
         return []
@@ -29,14 +29,13 @@ def list_tasks(client):
 
 def create_task(client, title, body=None, body_type="text", categories=None, due_date=None, start_date=None, reminder_date=None, importance=None, status=None, completed_date=None):
     """
-    Create a new task with all supported Microsoft Graph API properties.
+    使用所有支持的 Microsoft Graph API 属性创建新任务。
     """
     list_id = _get_default_todo_list_id(client)
     if not list_id:
-        return {"status": "error", "message": "No default todo list found"}
+        return {"status": "error", "message": "未找到默认待办列表"}
 
-    # Timezone for DateTimeTimeZone objects
-    # Timezone for DateTimeTimeZone objects
+    # DateTimeTimeZone 对象的时区
     tz = "China Standard Time"  
     
     payload = {"title": title}
@@ -74,13 +73,13 @@ def create_task(client, title, body=None, body_type="text", categories=None, due
 
 def update_task(client, task_id, **kwargs):
     """
-    Update an existing task with supported Microsoft Graph API properties.
+    使用支持的 Microsoft Graph API 属性更新现有任务。
     """
     list_id = _get_default_todo_list_id(client)
     if not list_id:
-        return {"status": "error", "message": "No default todo list found"}
+        return {"status": "error", "message": "未找到默认待办列表"}
 
-    # Timezone for DateTimeTimeZone objects
+    # DateTimeTimeZone 对象的时区
     tz = "China Standard Time" 
     payload = {}
     
@@ -103,17 +102,17 @@ def update_task(client, task_id, **kwargs):
         payload["completedDateTime"] = {"dateTime": kwargs['completed_date'], "timeZone": tz}
     if 'categories' in kwargs:
         payload["categories"] = kwargs['categories']
-    if 'completed' in kwargs: # Legacy helper
+    if 'completed' in kwargs: # 旧版辅助参数
         payload["status"] = "completed" if kwargs['completed'] else "notStarted"
         
     if not payload:
-        return {"status": "error", "message": "No fields to update provided"}
+        return {"status": "error", "message": "未提供需要更新的字段"}
 
     client.request("PATCH", f"/me/todo/lists/{list_id}/tasks/{task_id}", json=payload)
     return {"status": "success"}
 
 def delete_task(client, task_id):
-    """Delete a task."""
+    """删除任务。"""
     list_id = _get_default_todo_list_id(client)
     client.request("DELETE", f"/me/todo/lists/{list_id}/tasks/{task_id}")
     return {"status": "success"}

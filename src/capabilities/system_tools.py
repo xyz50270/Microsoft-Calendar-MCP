@@ -2,7 +2,7 @@ from datetime import datetime
 import tzlocal
 
 def get_current_time():
-    """Returns the current local time and timezone."""
+    """返回当前的本地时间、时区和星期几。"""
     now = datetime.now()
     local_tz = tzlocal.get_localzone_name()
     return {

@@ -1,5 +1,5 @@
 def list_events(client, start_date=None, end_date=None):
-    """List events from the primary calendar."""
+    """列出主日历中的事件。"""
     from datetime import datetime, timedelta
     
     if not start_date:
@@ -7,7 +7,7 @@ def list_events(client, start_date=None, end_date=None):
     if not end_date:
         end_date = (datetime.fromisoformat(start_date) + timedelta(days=7)).isoformat()
     
-    # Use calendarView for expanded recurring events
+    # 使用 calendarView 以获取展开后的循环事件
     endpoint = f"/me/calendar/calendarView?startDateTime={start_date}&endDateTime={end_date}"
     response = client.request("GET", endpoint)
     data = response.json()
@@ -27,8 +27,8 @@ def list_events(client, start_date=None, end_date=None):
 
 def create_event(client, subject, start, end, body=None, body_type="HTML", location=None, attendees=None, is_all_day=False, is_online_meeting=False, importance="normal", categories=None, is_reminder_on=True, reminder_minutes=15):
     """
-    Create a new event with all supported properties.
-    :param attendees: List of email addresses.
+    创建具有所有支持属性的新日程。
+    :param attendees: 邮箱地址列表。
     """
     payload = {
         "subject": subject,
@@ -57,10 +57,10 @@ def create_event(client, subject, start, end, body=None, body_type="HTML", locat
     return {"status": "success", "id": data.get("id")}
 
 def update_event(client, event_id, **kwargs):
-    """Update an existing event."""
+    """更新现有日程。"""
     payload = {}
     
-    # Mapping tool arguments to Graph API fields
+    # 将工具参数映射到 Graph API 字段
     field_map = {
         'subject': 'subject',
         'is_all_day': 'isAllDay',
@@ -89,23 +89,23 @@ def update_event(client, event_id, **kwargs):
         ]
         
     if not payload:
-        return {"status": "error", "message": "No fields to update provided"}
+        return {"status": "error", "message": "未提供需要更新的字段"}
         
     client.request("PATCH", f"/me/events/{event_id}", json=payload)
     return {"status": "success"}
 
 def delete_event(client, event_id):
-    """Delete an event."""
+    """删除日程。"""
     client.request("DELETE", f"/me/events/{event_id}")
     return {"status": "success"}
 
 def get_user_schedules(client, schedules, start, end, availability_view_interval=30):
     """
-    Get free/busy availability for a collection of users.
-    :param schedules: List of email addresses.
-    :param start: ISO format UTC datetime string.
-    :param end: ISO format UTC datetime string.
-    :param availability_view_interval: Duration of each time slot in minutes.
+    获取一组用户的忙闲日程。
+    :param schedules: 邮箱地址列表。
+    :param start: ISO 格式的本地时间字符串。
+    :param end: ISO 格式的本地时间字符串。
+    :param availability_view_interval: 每个时间槽的分钟数。
     """
     payload = {
         "schedules": schedules,
