@@ -1,0 +1,5 @@
+fastmcp
+msal
+httpx
+python-dotenv
+tzlocal
