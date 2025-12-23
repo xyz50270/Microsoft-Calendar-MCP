@@ -1,6 +1,7 @@
 import os
 import ssl
 import sys
+from typing import Optional, List
 
 # Windows OpenSSL Applink Fix
 try:
@@ -52,11 +53,11 @@ if ENABLE_CALENDAR:
         body: str = None, 
         body_type: str = "HTML",
         location: str = None, 
-        attendees: list[str] = None,
+        attendees: List[str] = None,
         is_all_day: bool = False,
         is_online_meeting: bool = False,
         importance: str = "normal",
-        categories: list[str] = None
+        categories: List[str] = None
     ):
         """Create a new event in the primary calendar (UTC+8)."""
         client = get_authenticated_client()
@@ -69,9 +70,36 @@ if ENABLE_CALENDAR:
         )
 
     @mcp.tool()
-    def update_calendar_event(event_id: str, **kwargs):
+    def update_calendar_event(
+        event_id: str, 
+        subject: Optional[str] = None, 
+        start: Optional[str] = None, 
+        end: Optional[str] = None, 
+        body: Optional[str] = None,
+        body_type: str = "HTML",
+        location: Optional[str] = None,
+        attendees: Optional[List[str]] = None,
+        is_all_day: Optional[bool] = None,
+        is_online_meeting: Optional[bool] = None,
+        importance: Optional[str] = None,
+        categories: Optional[List[str]] = None
+    ):
         """Update an existing calendar event (UTC+8)."""
         client = get_authenticated_client()
+        # Collect provided arguments
+        kwargs = {}
+        if subject is not None: kwargs['subject'] = subject
+        if start is not None: kwargs['start'] = start
+        if end is not None: kwargs['end'] = end
+        if body is not None: kwargs['body'] = body
+        if body_type != "HTML": kwargs['body_type'] = body_type
+        if location is not None: kwargs['location'] = location
+        if attendees is not None: kwargs['attendees'] = attendees
+        if is_all_day is not None: kwargs['is_all_day'] = is_all_day
+        if is_online_meeting is not None: kwargs['is_online_meeting'] = is_online_meeting
+        if importance is not None: kwargs['importance'] = importance
+        if categories is not None: kwargs['categories'] = categories
+        
         return calendar_tools.update_event(client, event_id, **kwargs)
 
     @mcp.tool()
@@ -81,7 +109,7 @@ if ENABLE_CALENDAR:
         return calendar_tools.delete_event(client, event_id)
 
     @mcp.tool()
-    def get_user_schedules(schedules: list[str], start: str, end: str, availability_view_interval: int = 30):
+    def get_user_schedules(schedules: List[str], start: str, end: str, availability_view_interval: int = 30):
         """Get free/busy availability (UTC+8)."""
         client = get_authenticated_client()
         return calendar_tools.get_user_schedules(client, schedules, start, end, availability_view_interval)
@@ -90,20 +118,61 @@ if ENABLE_CALENDAR:
 if ENABLE_TASKS:
     @mcp.tool()
     def list_tasks():
-        """List tasks from the default To Do list."""
+        """List tasks from the user's default To Do list."""
         client = get_authenticated_client()
         return tasks_tools.list_tasks(client)
 
     @mcp.tool()
-    def create_task(title: str, **kwargs):
+    def create_task(
+        title: str, 
+        body: Optional[str] = None, 
+        body_type: str = "text",
+        categories: Optional[List[str]] = None,
+        due_date: Optional[str] = None, 
+        start_date: Optional[str] = None,
+        reminder_date: Optional[str] = None, 
+        importance: Optional[str] = None, 
+        status: Optional[str] = None,
+        completed_date: Optional[str] = None
+    ):
         """Create a new task in Microsoft To Do (UTC+8)."""
         client = get_authenticated_client()
-        return tasks_tools.create_task(client, title, **kwargs)
+        return tasks_tools.create_task(
+            client, title, body=body, body_type=body_type, 
+            categories=categories, due_date=due_date, start_date=start_date,
+            reminder_date=reminder_date, importance=importance, 
+            status=status, completed_date=completed_date
+        )
 
     @mcp.tool()
-    def update_task(task_id: str, **kwargs):
+    def update_task(
+        task_id: str,
+        title: Optional[str] = None, 
+        body: Optional[str] = None, 
+        body_type: str = "text",
+        categories: Optional[List[str]] = None,
+        due_date: Optional[str] = None, 
+        start_date: Optional[str] = None,
+        reminder_date: Optional[str] = None, 
+        importance: Optional[str] = None, 
+        status: Optional[str] = None,
+        completed_date: Optional[str] = None
+    ):
         """Update an existing task in Microsoft To Do (UTC+8)."""
         client = get_authenticated_client()
+        # Collect provided arguments
+        kwargs = {}
+        if title is not None: kwargs['title'] = title
+        if body is not None: kwargs['body'] = body
+        if body_type != "text": kwargs['body_type'] = body_type
+        if categories is not None: kwargs['categories'] = categories
+        if due_date is not None: kwargs['due_date'] = due_date
+        if start_date is not None: kwargs['start_date'] = start_date
+        if reminder_date is not None: kwargs['reminder_date'] = reminder_date
+        if importance is not None: kwargs['importance'] = importance
+        if status is not None: kwargs['status'] = status
+        if completed_date is not None: kwargs['completed_date'] = completed_date
+
         return tasks_tools.update_task(client, task_id, **kwargs)
 
     @mcp.tool()
