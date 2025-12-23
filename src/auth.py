@@ -85,6 +85,8 @@ class GraphClient:
         url = f"{self.base_url}{endpoint}" if endpoint.startswith('/') else endpoint
         headers = kwargs.pop('headers', {})
         headers['Authorization'] = f"Bearer {token}"
+        # Set default timezone to China Standard Time (UTC+8)
+        headers['Prefer'] = 'outlook.timezone="China Standard Time"'
         
         with httpx.Client() as client:
             response = client.request(method, url, headers=headers, **kwargs)
