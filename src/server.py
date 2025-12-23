@@ -139,106 +139,106 @@ def get_user_schedules(schedules: list[str], start: str, end: str, availability_
 
 # --- Tasks Tools ---
 
-@mcp.tool()
-def list_tasks():
-    """
-    List tasks from the user's default To Do list.
-    """
-    client = get_authenticated_client()
-    return tasks_tools.list_tasks(client)
-
-@mcp.tool()
-def create_task(
-    title: str, 
-    body: str = None, 
-    body_type: str = "text",
-    categories: list[str] = None,
-    due_date: str = None, 
-    start_date: str = None,
-    reminder_date: str = None, 
-    importance: str = None, 
-    status: str = None,
-    completed_date: str = None
-):
-    """
-    Create a new task in Microsoft To Do with all supported properties.
-    [MANDATORY] CALL `get_current_time` first.
-    TIMEZONE NOTE: Microsoft Graph API for Tasks expects UTC for all date fields.
-    :param title: Task title (Required).
-    :param body: Task description/content.
-    :param body_type: Content type of the body ('text' or 'html'). Defaults to 'text'.
-    :param categories: List of categories for the task.
-    :param due_date: Due date and time (ISO format UTC).
-    :param start_date: Start date and time (ISO format UTC).
-    :param reminder_date: Reminder date and time (ISO format UTC).
-    :param importance: Importance level ('low', 'normal', 'high').
-    :param status: Task status ('notStarted', 'inProgress', 'completed', 'waitingOnOthers', 'deferred').
-    :param completed_date: Date and time when the task was completed (ISO format UTC).
-    """
-    client = get_authenticated_client()
-    return tasks_tools.create_task(
-        client, 
-        title, 
-        body=body, 
-        body_type=body_type,
-        categories=categories,
-        due_date=due_date, 
-        start_date=start_date,
-        reminder_date=reminder_date, 
-        importance=importance, 
-        status=status,
-        completed_date=completed_date
-    )
-
-@mcp.tool()
-def update_task(
-    task_id: str,
-    title: str = None, 
-    body: str = None, 
-    body_type: str = "text",
-    categories: list[str] = None,
-    due_date: str = None, 
-    start_date: str = None,
-    reminder_date: str = None, 
-    importance: str = None, 
-    status: str = None,
-    completed_date: str = None
-):
-    """
-    Update an existing task in Microsoft To Do.
-    [MANDATORY] CALL `get_current_time` first.
-    TIMEZONE NOTE: Convert local time to UTC before passing date parameters.
-    :param task_id: The ID of the task to update (Required).
-    :param title: New task title.
-    :param body: New task description.
-    :param body_type: Content type of the body ('text' or 'html').
-    :param categories: New list of categories.
-    :param due_date: New due date (ISO format UTC).
-    :param start_date: New start date (ISO format UTC).
-    :param reminder_date: New reminder date (ISO format UTC).
-    :param importance: Importance level ('low', 'normal', 'high').
-    :param status: Task status ('notStarted', 'inProgress', 'completed', 'waitingOnOthers', 'deferred').
-    :param completed_date: Completion date (ISO format UTC).
-    """
-    client = get_authenticated_client()
-    kwargs = {k: v for k, v in locals().items() if v is not None and k not in ['client', 'task_id']}
-    return tasks_tools.update_task(client, task_id, **kwargs)
-
-@mcp.tool()
-def complete_task(task_id: str):
-    """
-    Mark a task as completed.
-    """
-    client = get_authenticated_client()
-    return tasks_tools.update_task(client, task_id, completed=True)
-
-@mcp.tool()
-def delete_task(task_id: str):
-    """
-    Delete a task.
-    """
-    client = get_authenticated_client()
-    return tasks_tools.delete_task(client, task_id)
+# @mcp.tool()
+# def list_tasks():
+#     """
+#     List tasks from the user's default To Do list.
+#     """
+#     client = get_authenticated_client()
+#     return tasks_tools.list_tasks(client)
+#
+# @mcp.tool()
+# def create_task(
+#     title: str, 
+#     body: str = None, 
+#     body_type: str = "text",
+#     categories: list[str] = None,
+#     due_date: str = None, 
+#     start_date: str = None,
+#     reminder_date: str = None, 
+#     importance: str = None, 
+#     status: str = None,
+#     completed_date: str = None
+# ):
+#     """
+#     Create a new task in Microsoft To Do with all supported properties.
+#     [MANDATORY] CALL `get_current_time` first.
+#     TIMEZONE NOTE: Microsoft Graph API for Tasks expects UTC for all date fields.
+#     :param title: Task title (Required).
+#     :param body: Task description/content.
+#     :param body_type: Content type of the body ('text' or 'html'). Defaults to 'text'.
+#     :param categories: List of categories for the task.
+#     :param due_date: Due date and time (ISO format UTC).
+#     :param start_date: Start date and time (ISO format UTC).
+#     :param reminder_date: Reminder date and time (ISO format UTC).
+#     :param importance: Importance level ('low', 'normal', 'high').
+#     :param status: Task status ('notStarted', 'inProgress', 'completed', 'waitingOnOthers', 'deferred').
+#     :param completed_date: Date and time when the task was completed (ISO format UTC).
+#     """
+#     client = get_authenticated_client()
+#     return tasks_tools.create_task(
+#         client, 
+#         title, 
+#         body=body, 
+#         body_type=body_type,
+#         categories=categories,
+#         due_date=due_date, 
+#         start_date=start_date,
+#         reminder_date=reminder_date, 
+#         importance=importance, 
+#         status=status,
+#         completed_date=completed_date
+#     )
+#
+# @mcp.tool()
+# def update_task(
+#     task_id: str,
+#     title: str = None, 
+#     body: str = None, 
+#     body_type: str = "text",
+#     categories: list[str] = None,
+#     due_date: str = None, 
+#     start_date: str = None,
+#     reminder_date: str = None, 
+#     importance: str = None, 
+#     status: str = None,
+#     completed_date: str = None
+# ):
+#     """
+#     Update an existing task in Microsoft To Do.
+#     [MANDATORY] CALL `get_current_time` first.
+#     TIMEZONE NOTE: Convert local time to UTC before passing date parameters.
+#     :param task_id: The ID of the task to update (Required).
+#     :param title: New task title.
+#     :param body: New task description.
+#     :param body_type: Content type of the body ('text' or 'html').
+#     :param categories: New list of categories.
+#     :param due_date: New due date (ISO format UTC).
+#     :param start_date: New start date (ISO format UTC).
+#     :param reminder_date: New reminder date (ISO format UTC).
+#     :param importance: Importance level ('low', 'normal', 'high').
+#     :param status: Task status ('notStarted', 'inProgress', 'completed', 'waitingOnOthers', 'deferred').
+#     :param completed_date: Completion date (ISO format UTC).
+#     """
+#     client = get_authenticated_client()
+#     kwargs = {k: v for k, v in locals().items() if v is not None and k not in ['client', 'task_id']}
+#     return tasks_tools.update_task(client, task_id, **kwargs)
+#
+# @mcp.tool()
+# def complete_task(task_id: str):
+#     """
+#     Mark a task as completed.
+#     """
+#     client = get_authenticated_client()
+#     return tasks_tools.update_task(client, task_id, completed=True)
+#
+# @mcp.tool()
+# def delete_task(task_id: str):
+#     """
+#     Delete a task.
+#     """
+#     client = get_authenticated_client()
+#     return tasks_tools.delete_task(client, task_id)
 
 # --- Email Tools ---
 
