@@ -44,6 +44,10 @@ if ENABLE_CALENDAR:
         List events from the user's primary calendar.
         [MANDATORY] CALL `get_current_time` first.
         TIMEZONE NOTE: All date strings should be in LOCAL time (UTC+8).
+
+        Args:
+            start_date (str, optional): The start of the time range. ISO 8601 format (e.g., '2025-12-23T00:00:00'). Must be Local Time (UTC+8).
+            end_date (str, optional): The end of the time range. ISO 8601 format (e.g., '2025-12-23T23:59:59'). Must be Local Time (UTC+8).
         """
         validate_iso_datetime(start_date, "start_date")
         validate_iso_datetime(end_date, "end_date")
@@ -66,7 +70,24 @@ if ENABLE_CALENDAR:
         is_reminder_on: bool = True,
         reminder_minutes: int = 15
     ):
-        """Create a new event in the primary calendar (UTC+8)."""
+        """
+        Create a new event in the primary calendar (UTC+8).
+
+        Args:
+            subject (str): The title/subject of the event.
+            start (str): Start time in ISO 8601 format (e.g., '2025-12-25T09:00:00'). Must be Local Time (UTC+8).
+            end (str): End time in ISO 8601 format (e.g., '2025-12-25T10:00:00'). Must be Local Time (UTC+8).
+            body (str, optional): Content of the event description.
+            body_type (str, optional): Type of body content. Must be 'Text' or 'HTML'. Defaults to 'HTML'.
+            location (str, optional): Location name or address.
+            attendees (List[str], optional): List of email addresses of attendees.
+            is_all_day (bool, optional): Whether this is an all-day event. Defaults to False.
+            is_online_meeting (bool, optional): Whether to create a Teams meeting. Defaults to False.
+            importance (str, optional): Importance level: 'low', 'normal', 'high'. Defaults to 'normal'.
+            categories (List[str], optional): List of category names associated with the event.
+            is_reminder_on (bool, optional): Whether to set a reminder. Defaults to True.
+            reminder_minutes (int, optional): Minutes before start to show reminder. Defaults to 15.
+        """
         validate_iso_datetime(start, "start")
         validate_iso_datetime(end, "end")
         validate_enum(body_type, ["Text", "HTML"], "body_type")
@@ -102,7 +123,25 @@ if ENABLE_CALENDAR:
         is_reminder_on: Optional[bool] = None,
         reminder_minutes: Optional[int] = None
     ):
-        """Update an existing calendar event (UTC+8)."""
+        """
+        Update an existing calendar event (UTC+8). Only provided fields will be updated.
+
+        Args:
+            event_id (str): The unique ID of the event to update.
+            subject (str, optional): New title/subject.
+            start (str, optional): New start time in ISO 8601 format. Must be Local Time (UTC+8).
+            end (str, optional): New end time in ISO 8601 format. Must be Local Time (UTC+8).
+            body (str, optional): New description content.
+            body_type (str, optional): 'Text' or 'HTML'.
+            location (str, optional): New location.
+            attendees (List[str], optional): New list of attendees (replaces existing list).
+            is_all_day (bool, optional): Update all-day status.
+            is_online_meeting (bool, optional): Update Teams meeting status.
+            importance (str, optional): 'low', 'normal', 'high'.
+            categories (List[str], optional): New list of categories.
+            is_reminder_on (bool, optional): Update reminder status.
+            reminder_minutes (int, optional): Update reminder lead time.
+        """
         validate_iso_datetime(start, "start")
         validate_iso_datetime(end, "end")
         validate_enum(body_type, ["Text", "HTML"], "body_type")
@@ -132,13 +171,26 @@ if ENABLE_CALENDAR:
 
     @mcp.tool()
     def delete_calendar_event(event_id: str):
-        """Delete a calendar event."""
+        """
+        Delete a calendar event.
+
+        Args:
+            event_id (str): The unique ID of the event to delete.
+        """
         client = get_authenticated_client()
         return calendar_tools.delete_event(client, event_id)
 
     @mcp.tool()
     def get_user_schedules(schedules: List[str], start: str, end: str, availability_view_interval: int = 30):
-        """Get free/busy availability (UTC+8)."""
+        """
+        Get free/busy availability for users (UTC+8).
+
+        Args:
+            schedules (List[str]): List of email addresses to check. Use 'me' for current user.
+            start (str): Start of time range in ISO 8601 format (e.g., '2025-12-25T00:00:00'). Must be Local Time (UTC+8).
+            end (str): End of time range in ISO 8601 format (e.g., '2025-12-25T23:59:59'). Must be Local Time (UTC+8).
+            availability_view_interval (int, optional): Duration of each time slot in minutes. Defaults to 30.
+        """
         client = get_authenticated_client()
         
         my_email = None
@@ -184,7 +236,21 @@ if ENABLE_TASKS:
         status: Optional[str] = None,
         completed_date: Optional[str] = None
     ):
-        """Create a new task in Microsoft To Do (UTC+8)."""
+        """
+        Create a new task in Microsoft To Do (UTC+8).
+
+        Args:
+            title (str): The title of the task.
+            body (str, optional): The description of the task.
+            body_type (str, optional): 'text' or 'html'. Defaults to 'text'.
+            categories (List[str], optional): Categories to associate with the task.
+            due_date (str, optional): Due date in ISO 8601 format (e.g., '2025-12-31T23:59:59'). Must be Local Time (UTC+8).
+            start_date (str, optional): Start date in ISO 8601 format. Must be Local Time (UTC+8).
+            reminder_date (str, optional): Reminder date/time in ISO 8601 format. Must be Local Time (UTC+8).
+            importance (str, optional): Importance: 'low', 'normal', 'high'.
+            status (str, optional): Task status: 'notStarted', 'inProgress', 'completed', 'waitingOnOthers', 'deferred'.
+            completed_date (str, optional): Date the task was completed in ISO 8601 format. Must be Local Time (UTC+8).
+        """
         validate_enum(body_type, ["text", "html"], "body_type")
         validate_iso_datetime(due_date, "due_date")
         validate_iso_datetime(start_date, "start_date")
@@ -215,7 +281,22 @@ if ENABLE_TASKS:
         status: Optional[str] = None,
         completed_date: Optional[str] = None
     ):
-        """Update an existing task in Microsoft To Do (UTC+8)."""
+        """
+        Update an existing task in Microsoft To Do (UTC+8).
+
+        Args:
+            task_id (str): Unique ID of the task to update.
+            title (str, optional): New title.
+            body (str, optional): New description.
+            body_type (str, optional): 'text' or 'html'.
+            categories (List[str], optional): New list of categories.
+            due_date (str, optional): New due date (ISO 8601). Must be Local Time (UTC+8).
+            start_date (str, optional): New start date (ISO 8601). Must be Local Time (UTC+8).
+            reminder_date (str, optional): New reminder date (ISO 8601). Must be Local Time (UTC+8).
+            importance (str, optional): 'low', 'normal', 'high'.
+            status (str, optional): 'notStarted', 'inProgress', 'completed', etc.
+            completed_date (str, optional): New completion date (ISO 8601). Must be Local Time (UTC+8).
+        """
         validate_enum(body_type, ["text", "html"], "body_type")
         validate_iso_datetime(due_date, "due_date")
         validate_iso_datetime(start_date, "start_date")
@@ -242,13 +323,23 @@ if ENABLE_TASKS:
 
     @mcp.tool()
     def complete_task(task_id: str):
-        """Mark a task as completed."""
+        """
+        Mark a task as completed.
+
+        Args:
+            task_id (str): Unique ID of the task to complete.
+        """
         client = get_authenticated_client()
         return tasks_tools.update_task(client, task_id, completed=True)
 
     @mcp.tool()
     def delete_task(task_id: str):
-        """Delete a task."""
+        """
+        Delete a task.
+
+        Args:
+            task_id (str): Unique ID of the task to delete.
+        """
         client = get_authenticated_client()
         return tasks_tools.delete_task(client, task_id)
 
@@ -256,20 +347,37 @@ if ENABLE_TASKS:
 if ENABLE_EMAIL:
     @mcp.tool()
     def list_emails(limit: int = 10):
-        """List recent emails from the inbox (UTC+8)."""
+        """
+        List recent emails from the inbox (UTC+8).
+
+        Args:
+            limit (int, optional): Maximum number of emails to return. Defaults to 10.
+        """
         client = get_authenticated_client()
         return email_tools.list_emails(client, limit)
 
     @mcp.tool()
     def send_email(to: str, subject: str, body: str):
-        """Send an email."""
+        """
+        Send an email.
+
+        Args:
+            to (str): Email address of the recipient.
+            subject (str): Subject of the email.
+            body (str): Content of the email.
+        """
         validate_email(to, "to")
         client = get_authenticated_client()
         return email_tools.send_email(client, to, subject, body)
 
     @mcp.tool()
     def delete_email(message_id: str):
-        """Delete an email."""
+        """
+        Delete an email.
+
+        Args:
+            message_id (str): Unique ID of the message to delete.
+        """
         client = get_authenticated_client()
         return email_tools.delete_email(client, message_id)
 
