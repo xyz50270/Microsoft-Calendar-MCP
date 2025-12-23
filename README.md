@@ -38,9 +38,14 @@
    - `Mail.ReadWrite`
    - `Mail.Send`
 
-### 2. 本地安装与认证
+### 2. 本地安装与认证 (必须先执行一次)
+无论使用哪种运行方式，您都必须先在本地完成首次认证以生成 Token 文件。
 ```bash
-# 使用 uv 安装 (推荐)
+# 克隆仓库
+git clone https://github.com/xyz50270/Microsoft-Calendar-MCP.git
+cd Microsoft-Calendar-MCP
+
+# 安装依赖
 uv pip install -e .
 
 # 执行交互式认证 (根据提示在浏览器登录)
@@ -48,7 +53,9 @@ uv run m365-auth
 ```
 
 ### 3. 配置 MCP 客户端 (以 Claude Desktop 为例)
-修改您的配置文件（通常在 `%AppData%/Roaming/Instructions/claude_desktop_config.json`）：
+
+#### 方案 A: 通过 GitHub 地址直接运行 (推荐)
+这种方式由 `uv` 自动管理环境，无需手动进入目录。
 
 ```json
 {
@@ -56,12 +63,14 @@ uv run m365-auth
     "m365": {
       "command": "uv",
       "args": [
-        "--directory", "F:/your/path/Microsoft-Calendar-MCP",
         "run",
+        "--with", "git+https://github.com/xyz50270/Microsoft-Calendar-MCP.git",
         "m365-mcp"
       ],
       "env": {
         "MS_GRAPH_CLIENT_ID": "您的 Azure 客户端 ID",
+        "MS_GRAPH_TOKEN_PATH": "C:/Users/您的用户名/graph_token.json",
+        "MS_GRAPH_REDIRECT_URI": "https://login.microsoftonline.com/common/oauth2/nativeclient",
         "ENABLE_CALENDAR": "true",
         "ENABLE_TASKS": "true",
         "ENABLE_EMAIL": "true"
@@ -70,6 +79,42 @@ uv run m365-auth
   }
 }
 ```
+
+#### 方案 B: 本地源码运行
+指向您克隆到本地的代码目录。这是开发调试最常用的方式。
+
+```json
+{
+  "mcpServers": {
+    "m365": {
+      "command": "uv",
+      "args": [
+        "--directory", "F:/develop/Microsoft-Calendar-MCP",
+        "run",
+        "m365-mcp"
+      ],
+      "env": {
+        "MS_GRAPH_CLIENT_ID": "您的 Azure 客户端 ID",
+        "MS_GRAPH_TOKEN_PATH": "F:/develop/Microsoft-Calendar-MCP/graph_token.json",
+        "MS_GRAPH_REDIRECT_URI": "https://login.microsoftonline.com/common/oauth2/nativeclient"
+      }
+    }
+  }
+}
+```
+
+---
+
+## ⚙️ 环境变量配置
+
+| 变量名 | 说明 | 默认值 |
+| :--- | :--- | :--- |
+| `MS_GRAPH_CLIENT_ID` | Azure 应用客户端 ID | **必填** |
+| `MS_GRAPH_TOKEN_PATH` | Token 缓存文件的绝对路径 | `graph_token.json` |
+| `MS_GRAPH_REDIRECT_URI` | 注册时填写的重定向 URI | `https://login.microsoftonline.com/...` |
+| `ENABLE_CALENDAR` | 是否启用日历模块 | `true` |
+| `ENABLE_TASKS` | 是否启用待办模块 | `true` |
+| `ENABLE_EMAIL` | 是否启用邮件模块 | `true` |
 
 ---
 
@@ -112,7 +157,7 @@ uv run m365-auth
 
 ## 🔒 安全说明
 - **secrets.dat**: 该文件包含加密的开发环境配置，仅供内部开发使用。
-- **Token 存储**: 认证后的 Token 默认存储在本地 `graph_token.json` 中，请妥善保管。
+- **Token 安全**: `graph_token.json` 包含您的访问凭据，请确保其路径安全且不被上传至公开仓库。
 
 ## 📄 开源协议
 MIT

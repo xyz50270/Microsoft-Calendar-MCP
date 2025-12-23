@@ -29,9 +29,8 @@ def get_scopes():
     return scopes
 
 class GraphClient:
-    def __init__(self, client_id, client_secret=None, redirect_uri=None, token_path=None):
+    def __init__(self, client_id, redirect_uri=None, token_path=None):
         self.client_id = client_id
-        self.client_secret = client_secret
         self.redirect_uri = redirect_uri or 'https://login.microsoftonline.com/common/oauth2/nativeclient'
         self.token_path = token_path or 'graph_token.json'
         self.authority = "https://login.microsoftonline.com/common"
@@ -41,19 +40,12 @@ class GraphClient:
         self._token_cache = msal.SerializableTokenCache()
         self._load_cache()
 
-        if client_secret:
-            self.app = msal.ConfidentialClientApplication(
-                client_id, 
-                client_credential=client_secret, 
-                authority=self.authority,
-                token_cache=self._token_cache
-            )
-        else:
-            self.app = msal.PublicClientApplication(
-                client_id, 
-                authority=self.authority,
-                token_cache=self._token_cache
-            )
+        # 对于个人助手，使用公共客户端应用 (PublicClientApplication)
+        self.app = msal.PublicClientApplication(
+            client_id, 
+            authority=self.authority,
+            token_cache=self._token_cache
+        )
 
     def _load_cache(self):
         if os.path.exists(self.token_path):
@@ -113,7 +105,6 @@ class GraphClient:
 
 def get_client():
     client_id = os.getenv('MS_GRAPH_CLIENT_ID')
-    client_secret = os.getenv('MS_GRAPH_CLIENT_SECRET')
     redirect_uri = os.getenv('MS_GRAPH_REDIRECT_URI')
     token_path = os.getenv('MS_GRAPH_TOKEN_PATH')
 
@@ -123,7 +114,6 @@ def get_client():
     
     return GraphClient(
         client_id=client_id,
-        client_secret=client_secret if client_secret else None,
         redirect_uri=redirect_uri,
         token_path=token_path if token_path else 'graph_token.json'
     )

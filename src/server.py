@@ -363,11 +363,10 @@ def get_current_time():
 # --- Resources ---
 @mcp.resource("context://now")
 def get_time_resource() -> str:
-    """Current system time and timezone (UTC+8)."""
+    """获取当前的系统时间与时区信息 (UTC+8)。"""
     data = system_tools.get_current_time()
-    return f"Current Local Time: {data['current_time']}\nTimezone: {data['timezone']}\nDay: {data['day_of_week']}"
+    return f"当前本地时间: {data['current_time']}\n时区: {data['timezone']}\n星期: {data['day_of_week']}"
 
-# --- Dynamic Prompt ---
 # --- Dynamic Prompt ---
 @mcp.prompt("m365-assistant")
 def m365_assistant_prompt():
