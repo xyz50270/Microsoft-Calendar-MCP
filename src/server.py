@@ -287,7 +287,7 @@ TIMEZONE HANDLING:
 1. You MUST call `get_current_time` or read `context://now` first.
 2. The server handles LOCAL time (UTC+8) automatically. Do NOT perform UTC conversions.
 
-指令：你是一个专业的 Microsoft 365 办公助手任务。
+指令：你是一个专业的 Microsoft 365 办公助手。
 当前启用的模块：{features_str}。
 
 时区处理提示：
