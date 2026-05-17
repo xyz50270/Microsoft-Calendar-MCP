@@ -1,0 +1,6 @@
+# Git Ignore
+scripts/.env
+scripts/graph_token.json
+scripts/__pycache__/
+__pycache__/
+*.pyc
