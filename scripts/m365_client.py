@@ -118,15 +118,35 @@ def main():
 
         elif cmd == "calendar-create":
             subject, start, end = sys.argv[2:5]
-            location = sys.argv[5] if len(sys.argv) > 5 else None
+            location = sys.argv[5] if len(sys.argv) > 5 and sys.argv[5] != "None" else None
+            body = sys.argv[6] if len(sys.argv) > 6 and sys.argv[6] != "None" else None
+            attachments = sys.argv[7] if len(sys.argv) > 7 and sys.argv[7] != "None" else None
             payload = {
                 "subject": subject,
                 "start": {"dateTime": start, "timeZone": "China Standard Time"},
                 "end": {"dateTime": end, "timeZone": "China Standard Time"},
                 "location": {"displayName": location} if location else None
             }
+            if body:
+                payload["body"] = {"contentType": "HTML" if ("<" in body and ">" in body) else "Text", "content": body}
             res = client.request("POST", "/me/events", json=payload)
-            print(json.dumps({"status": "success", "id": res.get("id")}))
+            event_id = res.get("id")
+            
+            if attachments and event_id:
+                import base64
+                for path in attachments.split(','):
+                    path = path.strip()
+                    if os.path.exists(path):
+                        filename = os.path.basename(path)
+                        with open(path, "rb") as f:
+                            content_bytes = base64.b64encode(f.read()).decode('utf-8')
+                        attach_payload = {
+                            "@odata.type": "#microsoft.graph.fileAttachment",
+                            "name": filename,
+                            "contentBytes": content_bytes
+                        }
+                        client.request("POST", f"/me/events/{event_id}/attachments", json=attach_payload)
+            print(json.dumps({"status": "success", "id": event_id}))
 
         elif cmd == "calendar-update":
             event_id = sys.argv[2]
@@ -136,9 +156,27 @@ def main():
             if 'start' in updates: payload['start'] = {"dateTime": updates['start'], "timeZone": "China Standard Time"}
             if 'end' in updates: payload['end'] = {"dateTime": updates['end'], "timeZone": "China Standard Time"}
             if 'location' in updates: payload['location'] = {"displayName": updates['location']}
+            if 'body' in updates: payload['body'] = {"contentType": "HTML" if ("<" in updates['body'] and ">" in updates['body']) else "Text", "content": updates['body']}
             
             client.request("PATCH", f"/me/events/{event_id}", json=payload)
             print(json.dumps({"status": "success"}))
+
+        elif cmd == "calendar-add-attachment":
+            event_id, file_path = sys.argv[2:4]
+            if os.path.exists(file_path):
+                import base64
+                filename = os.path.basename(file_path)
+                with open(file_path, "rb") as f:
+                    content_bytes = base64.b64encode(f.read()).decode('utf-8')
+                attach_payload = {
+                    "@odata.type": "#microsoft.graph.fileAttachment",
+                    "name": filename,
+                    "contentBytes": content_bytes
+                }
+                res = client.request("POST", f"/me/events/{event_id}/attachments", json=attach_payload)
+                print(json.dumps({"status": "success", "id": res.get("id")}))
+            else:
+                print(json.dumps({"status": "error", "message": f"File not found: {file_path}"}))
 
         elif cmd == "calendar-delete":
             event_id = sys.argv[2]
